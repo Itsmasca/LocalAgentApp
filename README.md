@@ -115,7 +115,7 @@ specs/
 │   └── tasks.md                  Tareas marcadas [X]
 └── 002-mejoras-pre-entrega/      Borrador: notas de voz, cambiar lugar, pruebas
     ├── spec.md
-    └── research.md               Decisiones D-012 (notas de voz) y D-013 (privacidad)
+    └── research.md               Decisiones D-012 a D-014
 CHANGELOG.md                      Resumen de cada spec entregada
 ```
 

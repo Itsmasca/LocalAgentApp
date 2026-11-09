@@ -8,6 +8,9 @@ están en su `research.md`. Formato basado en [Keep a Changelog](https://keepach
 ### Planeado — spec [002-mejoras-pre-entrega](specs/002-mejoras-pre-entrega/spec.md)
 - Notas de voz con `record`, separadas del dictado (D-012).
 - Aclaración de privacidad del dictado en ambas plataformas (D-013).
+
+### Cambiado — spec 002
+- Guardar una entrada es atómico: lugar nuevo, entrada y portada en una sola transacción (D-014).
 - Cambiar el lugar detectado y confirmar cuando la precisión del GPS es baja.
 - Pruebas unitarias de las reglas de negocio.
 

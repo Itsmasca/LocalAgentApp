@@ -59,6 +59,7 @@ Pruebas unitarias de `ResolverUbicacion` y `GuardarEntrada` con repositorios fal
 - El usuario intenta dictar mientras graba una nota: se detiene la grabación antes de iniciar el dictado.
 - Falla la grabación del archivo: mensaje y la entrada se puede guardar sin audio.
 - El técnico cambia de lugar y luego cancela.
+- Falla el insert de la entrada después de crear un lugar nuevo: no debe quedar el lugar vacío (FR-007).
 
 ## Requirements *(mandatory)*
 
@@ -67,6 +68,7 @@ Pruebas unitarias de `ResolverUbicacion` y `GuardarEntrada` con repositorios fal
 - **FR-003**: Users MUST be able to cambiar la ubicación detectada antes de guardar.
 - **FR-004**: System MUST pedir confirmación cuando la precisión del GPS sea mayor que el radio de la ubicación.
 - **FR-005**: El proyecto MUST incluir pruebas unitarias de RN-01 a RN-04.
+- **FR-007**: System MUST guardar la ubicación nueva, la entrada y la portada en una sola transacción: si un paso falla, no queda ninguno (D-014).
 - **FR-006**: Cambio de esquema: columna `audio_path` en `entradas` con migración `onUpgrade` (versión 2). Una nota de voz por entrada (D-012).
 
 ## Success Criteria *(mandatory)*

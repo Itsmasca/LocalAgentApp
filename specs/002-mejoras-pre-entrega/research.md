@@ -36,3 +36,23 @@ Continúa la numeración de `specs/001-bitacora-por-ubicacion/research.md`.
   de Google. La app no controla dónde se procesa.
 - **Alternativas**: Afirmar que todo es local (incorrecto). Quitar el dictado (incumple el requisito).
 - **Mitigación**: La nota de voz (D-012) se guarda solo en el dispositivo; el dictado es opcional.
+
+## D-014 · Escritura atómica del agregado Ubicación
+
+- **Decisión**: `UbicacionRepository.registrarEntrada(...)` hace en una sola transacción de
+  SQLite (`db.transaction`) los tres pasos de guardar: crear la ubicación nueva (si aplica),
+  insertar la entrada y poner la portada (si aplica). `GuardarEntrada` decide qué guardar y
+  delega la escritura a ese método.
+- **Justificación**:
+  - Antes, los tres pasos eran escrituras independientes. Si fallaba el insert de la entrada,
+    la ubicación nueva quedaba creada y vacía (registro huérfano).
+  - La Ubicación es la raíz de su agregado (DDD): una Entrada no existe sin su lugar, así que
+    persistir el agregado de forma atómica es responsabilidad de su repositorio.
+  - No hay que pasar transacciones entre capas ni entre repositorios (Constitución V).
+- **Alternativas**:
+  - **Aceptar el riesgo** y documentarlo: es simple, pero deja datos inconsistentes posibles.
+  - **Unit of Work como puerto del dominio** (Fowler, PoEAA): es más general, pero obliga a que
+    todos los repositorios acepten la transacción. Es excesivo para un agregado de dos tablas.
+    Se reconsidera si aparecen operaciones que crucen varios agregados.
+- **Impacto**: `GuardarEntrada` ya no depende de `EntradaRepository`. `Entrada.copyWith`
+  acepta `ubicacionId`.

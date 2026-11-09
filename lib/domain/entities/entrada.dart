@@ -18,9 +18,9 @@ class Entrada {
     required this.creadaEn,
   });
 
-  Entrada copyWith({int? id}) => Entrada(
+  Entrada copyWith({int? id, int? ubicacionId}) => Entrada(
         id: id ?? this.id,
-        ubicacionId: ubicacionId,
+        ubicacionId: ubicacionId ?? this.ubicacionId,
         texto: texto,
         imagenPath: imagenPath,
         latitud: latitud,

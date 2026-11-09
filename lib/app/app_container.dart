@@ -32,7 +32,7 @@ class AppContainer {
     required this.speech,
     required this.mapas,
   })  : resolverUbicacion = ResolverUbicacion(ubicaciones),
-        guardarEntrada = GuardarEntrada(ubicaciones, entradas);
+        guardarEntrada = GuardarEntrada(ubicaciones);
 
   factory AppContainer.produccion() {
     final db = AppDatabase();

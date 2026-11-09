@@ -1,7 +1,9 @@
 import '../../core/errors/app_exception.dart';
+import '../../domain/entities/entrada.dart';
 import '../../domain/entities/ubicacion.dart';
 import '../../domain/repositories/ubicacion_repository.dart';
 import '../db/app_database.dart';
+import '../models/entrada_model.dart';
 import '../models/ubicacion_model.dart';
 
 class SqliteUbicacionRepository implements UbicacionRepository {
@@ -59,6 +61,41 @@ class SqliteUbicacionRepository implements UbicacionRepository {
           where: 'id = ?', whereArgs: [id]);
     } catch (e) {
       throw AppException('No se pudo actualizar la portada.', causa: e);
+    }
+  }
+
+  @override
+  Future<Entrada> registrarEntrada({
+    Ubicacion? nueva,
+    required Entrada entrada,
+    bool ponerPortada = false,
+  }) async {
+    try {
+      final db = await _appDb.database;
+      // Si cualquier paso falla, SQLite revierte todo lo hecho dentro.
+      return await db.transaction((txn) async {
+        var ubicacionId = entrada.ubicacionId;
+        if (nueva != null) {
+          ubicacionId = await txn.insert(
+              AppDatabase.tablaUbicaciones, UbicacionModel.toMap(nueva));
+        }
+
+        final aGuardar = entrada.copyWith(ubicacionId: ubicacionId);
+        final entradaId = await txn.insert(
+            AppDatabase.tablaEntradas, EntradaModel.toMap(aGuardar));
+
+        if (ponerPortada && aGuardar.imagenPath != null) {
+          await txn.update(
+            AppDatabase.tablaUbicaciones,
+            {'foto_portada': aGuardar.imagenPath},
+            where: 'id = ?',
+            whereArgs: [ubicacionId],
+          );
+        }
+        return aGuardar.copyWith(id: entradaId);
+      });
+    } catch (e) {
+      throw AppException('No se pudo guardar la entrada.', causa: e);
     }
   }
 
