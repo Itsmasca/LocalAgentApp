@@ -83,11 +83,12 @@ class SqliteUbicacionRepository implements UbicacionRepository {
         final aGuardar = entrada.copyWith(ubicacionId: ubicacionId);
         final entradaId = await txn.insert(
             AppDatabase.tablaEntradas, EntradaModel.toMap(aGuardar));
+        await EntradaModel.insertarFotos(txn, entradaId, aGuardar.fotos);
 
-        if (ponerPortada && aGuardar.imagenPath != null) {
+        if (ponerPortada && aGuardar.fotoPrincipal != null) {
           await txn.update(
             AppDatabase.tablaUbicaciones,
-            {'foto_portada': aGuardar.imagenPath},
+            {'foto_portada': aGuardar.fotoPrincipal},
             where: 'id = ?',
             whereArgs: [ubicacionId],
           );
