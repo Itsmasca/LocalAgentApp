@@ -21,6 +21,10 @@ dependencies:
   flutter_map: ^7.0.2       # mapa interactivo (OpenStreetMap, sin API key)
   latlong2: ^0.9.1
   url_launcher: ^6.3.0      # abrir Google Maps
+  # Compartir evidencia (spec 003)
+  pdf: ^3.13.1                    # reporte formal (D-015)
+  share_plus: ^13.3.1             # menú de compartir del sistema (D-016)
+  flutter_image_compress: ^2.5.1  # reducir fotos del reporte (D-017)
 
 dev_dependencies:
   flutter_test:
@@ -29,3 +33,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # Fuentes para el reporte PDF (D-018). Licencia en assets/fonts/OFL.txt.
+  assets:
+    - assets/fonts/NotoSans-Regular.ttf
+    - assets/fonts/NotoSans-Bold.ttf
+    - assets/fonts/NotoEmoji-Regular.ttf
