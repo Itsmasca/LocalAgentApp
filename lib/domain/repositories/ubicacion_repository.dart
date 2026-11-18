@@ -16,8 +16,10 @@ abstract interface class UbicacionRepository {
 
   /// Guarda en una sola transacción (todo o nada):
   /// 1. la ubicación [nueva], si viene;
-  /// 2. la [entrada], ligada a esa ubicación nueva o a `entrada.ubicacionId`;
-  /// 3. la portada del lugar con la foto de la entrada, si [ponerPortada].
+  /// 2. la [entrada] y sus fotos, ligada a esa ubicación nueva o a
+  ///    `entrada.ubicacionId`;
+  /// 3. la portada del lugar con la primera foto de la entrada, si
+  ///    [ponerPortada].
   Future<Entrada> registrarEntrada({
     Ubicacion? nueva,
     required Entrada entrada,

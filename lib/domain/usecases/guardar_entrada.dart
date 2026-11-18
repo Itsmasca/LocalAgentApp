@@ -5,7 +5,8 @@ import '../repositories/ubicacion_repository.dart';
 import '../services/device_services.dart';
 
 /// Guarda una entrada aplicando las reglas de negocio:
-/// 1. Una entrada necesita texto o foto (RN-03).
+/// 1. Una entrada necesita texto o al menos una foto (RN-03), y como mucho
+///    [Entrada.maxFotos] fotos.
 /// 2. Si no pertenece a una ubicación existente, se crea una nueva con
 ///    las coordenadas actuales y el nombre que dio el usuario (RN-02).
 /// 3. La primera foto de una ubicación se vuelve su portada (RN-04).
@@ -20,12 +21,16 @@ class GuardarEntrada {
   Future<Entrada> call({
     required Coordenadas coordenadas,
     required String texto,
-    String? imagenPath,
+    List<String> fotos = const [],
     Ubicacion? ubicacion,
     String? nombreNuevaUbicacion,
   }) async {
-    if (texto.trim().isEmpty && imagenPath == null) {
+    if (texto.trim().isEmpty && fotos.isEmpty) {
       throw const AppException('La entrada necesita texto o una foto.');
+    }
+    if (fotos.length > Entrada.maxFotos) {
+      throw const AppException(
+          'Una entrada puede tener como máximo ${Entrada.maxFotos} fotos.');
     }
 
     Ubicacion? nueva;
@@ -50,12 +55,12 @@ class GuardarEntrada {
         // Si el lugar es nuevo, el repositorio sustituye este id por el real.
         ubicacionId: ubicacion?.id ?? 0,
         texto: texto.trim(),
-        imagenPath: imagenPath,
+        fotos: List.unmodifiable(fotos),
         latitud: coordenadas.latitud,
         longitud: coordenadas.longitud,
         creadaEn: DateTime.now(),
       ),
-      ponerPortada: imagenPath != null && sinPortada,
+      ponerPortada: fotos.isNotEmpty && sinPortada,
     );
   }
 }
