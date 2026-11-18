@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Reporte Técnico — Bitácora de Campo</title>
+<style>
+  @page { size: Letter; margin: 2cm 2cm 2.2cm 2cm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Calibri, Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1d1d1f; margin: 0; }
+  h1 { font-size: 26pt; margin: 0 0 6pt; color: #0b3d5c; }
+  h2 { font-size: 15pt; color: #0b3d5c; border-bottom: 2px solid #0b3d5c; padding-bottom: 3pt; margin: 18pt 0 8pt; }
+  h3 { font-size: 12pt; color: #134e72; margin: 14pt 0 5pt; }
+  p { margin: 0 0 7pt; text-align: justify; }
+  ul, ol { margin: 0 0 8pt 16pt; padding: 0; }
+  li { margin-bottom: 3pt; }
+  code { font-family: Consolas, monospace; font-size: 9pt; background: #eef2f5; padding: 0 3px; border-radius: 3px; }
+  pre { font-family: Consolas, monospace; font-size: 8.6pt; background: #f4f6f8; border: 1px solid #d8dee4; padding: 8pt; border-radius: 4px; line-height: 1.3; white-space: pre; }
+  table { width: 100%; border-collapse: collapse; margin: 6pt 0 10pt; font-size: 9.5pt; }
+  th { background: #0b3d5c; color: #fff; text-align: left; padding: 5pt 6pt; }
+  td { border-bottom: 1px solid #d8dee4; padding: 4pt 6pt; vertical-align: top; }
+  tr:nth-child(even) td { background: #f7f9fb; }
+  .portada { height: 23cm; display: flex; flex-direction: column; justify-content: center; page-break-after: always; }
+  .portada .sub { font-size: 14pt; color: #134e72; margin-bottom: 40pt; }
+  .portada .linea { width: 80pt; height: 4px; background: #0b3d5c; margin: 14pt 0 22pt; }
+  .portada dl { display: grid; grid-template-columns: 130pt 1fr; row-gap: 6pt; font-size: 11pt; margin: 0; }
+  .portada dt { font-weight: 600; color: #555; }
+  .portada dd { margin: 0; }
+  .salto { page-break-before: always; }
+  .figura { page-break-inside: avoid; margin: 8pt 0 12pt; text-align: center; }
+  .figura .mermaid { display: flex; justify-content: center; }
+  .figura svg { max-width: 100% !important; height: auto; max-height: 23cm; }
+  .figura.chica svg { max-width: 55% !important; }
+  .pie { font-size: 9pt; color: #555; font-style: italic; margin-top: 4pt; text-align: center; }
+  .nota { background: #fff8e6; border-left: 4px solid #e0a100; padding: 6pt 9pt; font-size: 9.5pt; margin: 8pt 0; }
+  .sinromper { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<!-- ============ PORTADA ============ -->
+<section class="portada">
+  <h1>Bitácora de Campo</h1>
+  <div class="sub">Reporte Técnico — Parcial 2<br>Desarrollo de Aplicaciones Móviles</div>
+  <div class="linea"></div>
+  <dl>
+    <dt>Alumno:</dt><dd>[Nombre completo]</dd>
+    <dt>Matrícula:</dt><dd>[Matrícula]</dd>
+    <dt>Profesor:</dt><dd>[Nombre del profesor]</dd>
+    <dt>Institución:</dt><dd>[Institución]</dd>
+    <dt>Repositorio:</dt><dd>[Enlace a GitHub]</dd>
+    <dt>Fecha:</dt><dd>17 de noviembre de 2026</dd>
+    <dt>Tecnología:</dt><dd>Flutter / Dart · SQLite (sqflite)</dd>
+  </dl>
+</section>
+
+<!-- ============ 1. JUSTIFICACIÓN ============ -->
+<h2>1. Justificación del proyecto</h2>
+
+<h3>1.1 Problema</h3>
+<p>Los técnicos de campo (aire acondicionado, plomería, electricidad, refrigeración, redes) regresan una y otra vez a los mismos domicilios, obras o propiedades. Sin embargo, el contexto de cada visita —qué se revisó, qué pieza se cambió, cómo estaba el equipo, qué quedó pendiente— se pierde entre la galería del teléfono, conversaciones de WhatsApp y la memoria del propio técnico.</p>
+<p>Las herramientas que usan hoy organizan la información <strong>por fecha o por conversación</strong>, no <strong>por lugar</strong>. Cuando el técnico vuelve a "Casa López" seis meses después, tiene que buscar entre cientos de fotos sin contexto para recordar qué hizo la última vez. Esto provoca diagnósticos repetidos, pérdida de tiempo y poca evidencia frente al cliente en caso de reclamos.</p>
+
+<h3>1.2 Solución</h3>
+<p><strong>Bitácora de Campo</strong> es una aplicación móvil que organiza la memoria de trabajo <strong>por ubicación</strong>. Cada lugar guarda su propio historial de entradas con fotos, notas dictadas por voz y coordenadas GPS. Al abrir "Nueva entrada", la app detecta la posición del técnico y le indica automáticamente en qué lugar registrado se encuentra (si está dentro de un radio de 75 m); si el lugar es nuevo, le pide un nombre y lo crea.</p>
+
+<h3>1.3 Problemas que resuelve</h3>
+<table>
+  <tr><th style="width:38%">Problema</th><th>Cómo lo resuelve la app</th></tr>
+  <tr><td>El historial de cada cliente está disperso.</td><td>Todas las entradas quedan agrupadas bajo la ubicación a la que pertenecen.</td></tr>
+  <tr><td>Escribir notas con las manos ocupadas o sucias es incómodo.</td><td>Dictado por voz con el micrófono (voz → texto en español).</td></tr>
+  <tr><td>Las fotos no tienen contexto.</td><td>Cada foto (cámara o galería) se guarda dentro de una entrada con texto, fecha y coordenadas.</td></tr>
+  <tr><td>Hay que elegir manualmente a qué cliente corresponde cada nota.</td><td>El GPS identifica automáticamente la ubicación registrada más cercana.</td></tr>
+  <tr><td>Llegar de nuevo a un domicilio poco conocido.</td><td>Mapa interactivo en el detalle y botón que abre Google Maps con las coordenadas guardadas.</td></tr>
+  <tr><td>Falta evidencia del trabajo ante el cliente.</td><td>Reporte PDF con folio o mensaje con fotos, enviado desde el menú de compartir del teléfono.</td></tr>
+  <tr><td>La información del cliente es sensible.</td><td>Todo se guarda localmente en el dispositivo (SQLite); no se envía a ningún servidor.</td></tr>
+</table>
+
+<h3>1.4 Usuario objetivo y alcance</h3>
+<p>El caso de referencia es un técnico independiente de aire acondicionado en Mérida que atiende entre 4 y 8 domicilios al día. <strong>Fuera de alcance:</strong> CRM, agenda, cobros, coordinación de equipos y asistentes generativos; la app se enfoca únicamente en la memoria por lugar.</p>
+
+<!-- ============ 2. REQUERIMIENTOS ============ -->
+<h2>2. Cumplimiento de requerimientos</h2>
+<table>
+  <tr><th style="width:30%">Requerimiento</th><th>Implementación</th></tr>
+  <tr><td>Scaffold, AppBar y Drawer</td><td>Todas las pantallas usan <code>Scaffold</code> + <code>AppBar</code>; menú lateral en <code>widgets/app_drawer.dart</code>.</td></tr>
+  <tr><td>Routes y Navigator</td><td>Rutas con nombre (<code>/</code>, <code>/ubicacion</code>, <code>/nueva-entrada</code>, <code>/compartir</code>) y <code>onGenerateRoute</code> en <code>app/routes.dart</code>; navegación con <code>Navigator.pushNamed</code>.</td></tr>
+  <tr><td>Transiciones animadas (Hero)</td><td>La foto de portada de la ubicación vuela de la lista al detalle mediante <code>Hero</code> con la etiqueta <code>Ubicacion.heroTag</code>.</td></tr>
+  <tr><td>Almacenamiento local</td><td>SQLite (<code>sqflite</code>) con tablas <code>ubicaciones</code>, <code>entradas</code>, <code>fotos</code> y <code>ajustes</code>; se guardan rutas de imagen, latitud, longitud y fecha.</td></tr>
+  <tr><td>Manejo de errores (try-catch)</td><td>Repositorios y servicios envuelven las excepciones de plugins y base de datos en <code>AppException</code>, que contiene un mensaje apto para el usuario.</td></tr>
+  <tr><td>FutureBuilder</td><td>Carga asíncrona de la lista de ubicaciones y de las entradas de cada ubicación, con estados de carga, vacío y error (<code>widgets/estado_vista.dart</code>).</td></tr>
+  <tr><td>Gadget: cámara y galería</td><td><code>ImagePickerMediaService</code> (paquete <code>image_picker</code>); hasta 10 fotos por entrada.</td></tr>
+  <tr><td>Gadget: micrófono y dictado</td><td><code>SpeechToTextService</code> (paquete <code>speech_to_text</code>), idioma es-MX, con resultados parciales en tiempo real.</td></tr>
+  <tr><td>Geolocalización</td><td><code>GeolocatorLocationService</code> (paquete <code>geolocator</code>) obtiene la posición al abrir el formulario y la guarda con la entrada.</td></tr>
+  <tr><td>Mapas</td><td>Mapa interactivo <code>flutter_map</code> (OpenStreetMap) en el detalle, más un botón que invoca Google Maps mediante <code>url_launcher</code>.</td></tr>
+</table>
+
+<!-- ============ 3. ARQUITECTURA ============ -->
+<h2 class="salto">3. Arquitectura</h2>
+<p>La aplicación sigue una <strong>arquitectura por capas</strong> inspirada en Clean Architecture. La regla principal es que las dependencias apuntan hacia el dominio: la capa de dominio no conoce Flutter, SQLite ni ningún plugin; solo define entidades, interfaces (contratos) y casos de uso. La capa de datos implementa esos contratos, y la capa de presentación los consume sin saber qué implementación concreta hay detrás.</p>
+
+<div class="sinromper">
+<h3>3.1 Estructura de capas</h3>
+<pre>lib/
+├── main.dart                 Arranque de la app
+├── app/                      Composición
+│   ├── app_container.dart    Raíz de composición (inyección de dependencias)
+│   └── routes.dart           Rutas con nombre + onGenerateRoute
+├── core/                     Transversal
+│   ├── errors/               AppException (mensaje para la UI + causa técnica)
+│   └── utils/                Distancia Haversine, formato de fechas
+├── domain/                   Reglas de negocio — sin Flutter ni plugins
+│   ├── entities/             Ubicacion, Entrada, PaqueteEvidencia, Responsable…
+│   ├── repositories/         Interfaces de persistencia
+│   ├── services/             Interfaces de gadgets y de compartir/reporte
+│   └── usecases/             ResolverUbicacion, GuardarEntrada, *Evidencia
+├── data/                     Implementaciones concretas
+│   ├── db/                   AppDatabase (SQLite, migraciones)
+│   ├── models/               Mapeo entidad ↔ fila de la tabla
+│   ├── repositories/         SqliteUbicacion/Entrada/AjustesRepository
+│   └── services/             geolocator, image_picker, speech_to_text,
+│                             url_launcher, pdf, share_plus
+└── presentation/             Interfaz de usuario
+    ├── screens/              Lista, Detalle, Nueva entrada, Compartir
+    └── widgets/              Drawer, FotoLocal, diálogos, vistas de error</pre>
+</div>
+
+<div class="figura chica">
+<div class="mermaid">
+flowchart TB
+    P["<b>Presentación</b><br/>Screens · Widgets"]
+    D["<b>Dominio</b><br/>Entidades · Interfaces · Casos de uso"]
+    DA["<b>Datos</b><br/>SQLite · Plugins de hardware"]
+    A["<b>App</b><br/>AppContainer · AppRouter"]
+    P -->|usa interfaces| D
+    DA -->|implementa| D
+    A -.->|crea e inyecta| P
+    A -.->|crea| DA
+</div>
+<div class="pie">Figura 1. Dirección de las dependencias entre capas.</div>
+</div>
+
+<h3 class="salto">3.2 Diagrama de clases</h3>
+<p>El diagrama muestra las entidades del dominio, los contratos (interfaces) y sus implementaciones concretas, los casos de uso y las pantallas que los consumen. Las flechas punteadas con triángulo indican <em>implementa</em>; las sólidas indican <em>depende de</em>.</p>
+
+<div class="figura">
+<div class="mermaid">
+classDiagram
+    direction LR
+
+    class Ubicacion {
+      +int id
+      +String nombre
+      +double latitud
+      +double longitud
+      +double radioMetros
+      +String fotoPortada
+      +DateTime creadaEn
+      +heroTag() String
+    }
+    class Entrada {
+      +int id
+      +int ubicacionId
+      +String texto
+      +List~String~ fotos
+      +double latitud
+      +double longitud
+      +DateTime creadaEn
+      +fotoPrincipal() String
+    }
+    class Coordenadas {
+      +double latitud
+      +double longitud
+    }
+    Ubicacion "1" --> "*" Entrada : contiene
+
+    class UbicacionRepository {
+      &lt;&lt;interface&gt;&gt;
+      +obtenerTodas() List~Ubicacion~
+      +obtenerPorId(id) Ubicacion
+      +crear(Ubicacion) Ubicacion
+      +actualizarPortada(id, ruta)
+      +eliminar(id)
+      +registrarEntrada(nueva, entrada, ponerPortada) Entrada
+    }
+    class EntradaRepository {
+      &lt;&lt;interface&gt;&gt;
+      +obtenerPorUbicacion(id) List~Entrada~
+      +crear(Entrada) Entrada
+    }
+    class LocationService {
+      &lt;&lt;interface&gt;&gt;
+      +obtenerPosicionActual() Coordenadas
+    }
+    class MediaService {
+      &lt;&lt;interface&gt;&gt;
+      +tomarFoto() String
+      +elegirDeGaleria(limite) List~String~
+      +descartar(ruta)
+    }
+    class SpeechService {
+      &lt;&lt;interface&gt;&gt;
+      +inicializar() bool
+      +escuchar(onResultado)
+      +detener()
+    }
+    class MapLauncher {
+      &lt;&lt;interface&gt;&gt;
+      +abrirEnMapas(lat, lng)
+    }
+
+    class ResolverUbicacion {
+      +call(Coordenadas) Ubicacion
+    }
+    class GuardarEntrada {
+      +call(coords, texto, fotos, ubicacion, nombreNueva) Entrada
+    }
+    ResolverUbicacion --> UbicacionRepository
+    GuardarEntrada --> UbicacionRepository
+
+    class AppDatabase
+    class SqliteUbicacionRepository
+    class SqliteEntradaRepository
+    class GeolocatorLocationService
+    class ImagePickerMediaService
+    class SpeechToTextService
+    class UrlMapLauncher
+    SqliteUbicacionRepository ..|> UbicacionRepository
+    SqliteEntradaRepository ..|> EntradaRepository
+    SqliteUbicacionRepository --> AppDatabase
+    SqliteEntradaRepository --> AppDatabase
+    GeolocatorLocationService ..|> LocationService
+    ImagePickerMediaService ..|> MediaService
+    SpeechToTextService ..|> SpeechService
+    UrlMapLauncher ..|> MapLauncher
+
+    class UbicacionesListScreen
+    class UbicacionDetailScreen
+    class NuevaEntradaScreen
+    UbicacionesListScreen --> UbicacionRepository
+    UbicacionDetailScreen --> EntradaRepository
+    UbicacionDetailScreen --> MapLauncher
+    NuevaEntradaScreen --> LocationService
+    NuevaEntradaScreen --> MediaService
+    NuevaEntradaScreen --> SpeechService
+    NuevaEntradaScreen --> ResolverUbicacion
+    NuevaEntradaScreen --> GuardarEntrada
+</div>
+<div class="pie">Figura 2. Diagrama de clases principal.</div>
+</div>
+
+<div class="figura">
+<div class="mermaid">
+classDiagram
+    direction LR
+    class AppContainer {
+      +UbicacionRepository ubicaciones
+      +EntradaRepository entradas
+      +LocationService location
+      +MediaService media
+      +SpeechService speech
+      +MapLauncher mapas
+      +ResolverUbicacion resolverUbicacion
+      +GuardarEntrada guardarEntrada
+      +AjustesRepository ajustes
+      +PrepararEvidencia prepararEvidencia
+      +CompartirEvidencia compartirEvidencia
+    }
+    class AppRouter {
+      +onGenerateRoute(settings) Route
+    }
+    class AppException {
+      +String mensaje
+      +Object causa
+    }
+    AppRouter --> AppContainer
+    AppRouter ..> UbicacionesListScreen : "/"
+    AppRouter ..> UbicacionDetailScreen : "/ubicacion"
+    AppRouter ..> NuevaEntradaScreen : "/nueva-entrada"
+    AppRouter ..> CompartirScreen : "/compartir"
+</div>
+<div class="pie">Figura 3. Composición y navegación: AppContainer crea las implementaciones concretas y AppRouter las inyecta en cada pantalla.</div>
+</div>
+
+<h3>3.3 Módulo de compartir evidencia</h3>
+<p>Desde el detalle de una ubicación, el técnico puede enviar al cliente la evidencia del trabajo, ya sea como <strong>reporte PDF formal con folio</strong> o como <strong>mensaje con fotos</strong>, usando el menú de compartir del sistema. El módulo respeta la misma arquitectura: el dominio define los contratos y la capa de datos los implementa con los paquetes <code>pdf</code>, <code>share_plus</code> y <code>flutter_image_compress</code>.</p>
+<div class="figura">
+<div class="mermaid">
+classDiagram
+    direction LR
+    class PaqueteEvidencia {
+      +Ubicacion ubicacion
+      +List~Entrada~ entradas
+      +FormatoCompartir formato
+      +bool incluirCoordenadas
+      +Responsable responsable
+      +Destinatario destinatario
+      +totalFotos() int
+    }
+    class Responsable {
+      +String nombre
+      +String negocio
+      +String telefono
+    }
+    class ReporteGenerado {
+      +String folio
+      +String rutaArchivo
+      +int fotosOmitidas
+    }
+    PaqueteEvidencia --> Responsable
+
+    class AjustesRepository {
+      &lt;&lt;interface&gt;&gt;
+      +obtenerResponsable() Responsable
+      +guardarResponsable(r)
+      +reservarFolio(fecha) String
+    }
+    class GeneradorReporte {
+      &lt;&lt;interface&gt;&gt;
+      +generar(paquete, folio) ReporteGenerado
+    }
+    class CompartirService {
+      &lt;&lt;interface&gt;&gt;
+      +compartirArchivo(ruta) ResultadoCompartir
+      +compartirMensaje(texto, fotos) ResultadoCompartir
+      +limpiarTemporales()
+    }
+    class AlmacenFotos {
+      &lt;&lt;interface&gt;&gt;
+      +existe(ruta) bool
+    }
+
+    class PrepararEvidencia { +call(ubicacion, formato, soloEsta) PaqueteEvidencia }
+    class ResumirEvidencia { +call(paquete) ResumenEvidencia }
+    class CompartirEvidencia { +call(paquete) EnvioEvidencia }
+    class FormatearMensaje { +call(paquete) String }
+
+    PrepararEvidencia --> EntradaRepository
+    PrepararEvidencia --> AjustesRepository
+    ResumirEvidencia --> AlmacenFotos
+    CompartirEvidencia --> AjustesRepository
+    CompartirEvidencia --> GeneradorReporte
+    CompartirEvidencia --> CompartirService
+    CompartirEvidencia --> AlmacenFotos
+    CompartirEvidencia --> FormatearMensaje
+    GeneradorReporte ..> ReporteGenerado : crea
+
+    SqliteAjustesRepository ..|> AjustesRepository
+    PdfGeneradorReporte ..|> GeneradorReporte
+    SharePlusCompartirService ..|> CompartirService
+    ArchivoAlmacenFotos ..|> AlmacenFotos
+
+    UbicacionDetailScreen --> PrepararEvidencia
+    CompartirScreen --> ResumirEvidencia
+    CompartirScreen --> CompartirEvidencia
+    CompartirScreen --> AjustesRepository
+</div>
+<div class="pie">Figura 4. Diagrama de clases del módulo de compartir evidencia.</div>
+</div>
+
+<h3>3.4 Modelo de datos (SQLite)</h3>
+<div class="figura chica">
+<div class="mermaid">
+erDiagram
+    UBICACIONES ||--o{ ENTRADAS : contiene
+    ENTRADAS ||--o{ FOTOS : tiene
+    UBICACIONES {
+      INTEGER id PK
+      TEXT nombre
+      REAL latitud
+      REAL longitud
+      REAL radio_metros
+      TEXT foto_portada
+      TEXT creada_en
+    }
+    ENTRADAS {
+      INTEGER id PK
+      INTEGER ubicacion_id FK
+      TEXT texto
+      REAL latitud
+      REAL longitud
+      TEXT creada_en
+    }
+    FOTOS {
+      INTEGER id PK
+      INTEGER entrada_id FK
+      TEXT ruta
+      INTEGER orden
+    }
+    AJUSTES {
+      TEXT clave PK
+      TEXT valor
+    }
+</div>
+<div class="pie">Figura 5. Esquema de la base de datos local. Las llaves foráneas usan ON DELETE CASCADE.</div>
+</div>
+<p>Las imágenes no se guardan como BLOB: se copian a la carpeta de documentos de la app y en la base solo se guarda su <strong>ruta</strong>, lo que mantiene la base de datos ligera. Las coordenadas se guardan tanto en la ubicación (centro del lugar) como en cada entrada (posición exacta al momento de registrar).</p>
+
+<!-- ============ 4. FLUJO DE DATOS ============ -->
+<h2 class="salto">4. Flujo de datos</h2>
+
+<h3>4.1 Registrar una nueva entrada</h3>
+<p>Es el flujo central de la aplicación e involucra los tres gadgets y la persistencia local.</p>
+<div class="figura">
+<div class="mermaid">
+sequenceDiagram
+    actor T as Técnico
+    participant UI as NuevaEntradaScreen
+    participant GPS as LocationService
+    participant R as ResolverUbicacion
+    participant M as MediaService
+    participant V as SpeechService
+    participant G as GuardarEntrada
+    participant Repo as UbicacionRepository
+    participant DB as SQLite
+
+    T->>UI: Abre "Nueva entrada"
+    UI->>GPS: obtenerPosicionActual()
+    GPS-->>UI: Coordenadas
+    UI->>R: call(coordenadas)
+    R->>Repo: obtenerTodas()
+    Repo->>DB: SELECT ubicaciones
+    R-->>UI: Ubicación dentro del radio (o null)
+    T->>UI: Toma foto / elige de galería
+    UI->>M: tomarFoto() / elegirDeGaleria()
+    M-->>UI: rutas de imagen
+    T->>UI: Dicta la nota
+    UI->>V: escuchar(onResultado)
+    V-->>UI: texto transcrito
+    T->>UI: Guardar
+    UI->>G: call(coords, texto, fotos, ubicación?)
+    G->>Repo: registrarEntrada(nueva?, entrada, ponerPortada)
+    Repo->>DB: BEGIN TRANSACTION
+    opt No había ubicación cercana
+        Repo->>DB: INSERT ubicaciones
+    end
+    Repo->>DB: INSERT entradas + INSERT fotos
+    opt Primera foto del lugar
+        Repo->>DB: UPDATE foto_portada
+    end
+    Repo->>DB: COMMIT
+    G-->>UI: Entrada guardada
+    UI-->>T: Navigator.pop(true) → la lista se recarga (FutureBuilder)
+</div>
+<div class="pie">Figura 6. Diagrama de secuencia: guardar una entrada.</div>
+</div>
+<p>La escritura se hace en <strong>una sola transacción</strong>: si falla cualquier paso (por ejemplo, la inserción de fotos), no queda una ubicación vacía ni una entrada sin fotos. El error se convierte en <code>AppException</code> y la pantalla muestra un mensaje sin perder lo que el usuario capturó.</p>
+
+<h3>4.2 Consultar el historial de una ubicación</h3>
+<div class="figura">
+<div class="mermaid">
+sequenceDiagram
+    actor T as Técnico
+    participant L as UbicacionesListScreen
+    participant D as UbicacionDetailScreen
+    participant E as EntradaRepository
+    participant DB as SQLite
+    participant Mp as MapLauncher
+
+    T->>L: Abre la app
+    L->>DB: FutureBuilder → obtenerTodas()
+    DB-->>L: Lista de ubicaciones
+    T->>L: Toca "Casa López"
+    L->>D: Navigator.pushNamed('/ubicacion') + animación Hero
+    D->>E: FutureBuilder → obtenerPorUbicacion(id)
+    E->>DB: SELECT entradas JOIN fotos
+    DB-->>D: Entradas con fotos
+    D-->>T: Mapa (flutter_map) + historial
+    T->>D: Botón "Abrir en Google Maps"
+    D->>Mp: abrirEnMapas(lat, lng)
+</div>
+<div class="pie">Figura 7. Diagrama de secuencia: consulta del historial y apertura en mapas.</div>
+</div>
+
+<h3>4.3 Manejo de errores</h3>
+<div class="figura">
+<div class="mermaid">
+flowchart LR
+    X["Plugin / SQLite<br/>lanza excepción"] --> C["try-catch en<br/>Repositorio o Servicio"]
+    C --> AE["AppException<br/>(mensaje para el usuario + causa)"]
+    AE --> UI{"Pantalla"}
+    UI -->|FutureBuilder| EV["EstadoVista de error<br/>+ botón Reintentar"]
+    UI -->|acción del usuario| SB["Mensaje en pantalla / SnackBar"]
+</div>
+<div class="pie">Figura 8. Propagación de errores desde la capa de datos hasta la interfaz.</div>
+</div>
+<p>Ejemplos: si el usuario niega el permiso de ubicación o el GPS está apagado, <code>GeolocatorLocationService</code> lanza una <code>AppException</code> con un mensaje que indica qué hacer; si el reconocimiento de voz no está disponible, el botón del micrófono informa el problema en lugar de cerrar la app.</p>
+
+<!-- ============ 5. SOLID ============ -->
+<h2 class="salto">5. Principios SOLID aplicados</h2>
+<table>
+  <tr><th style="width:24%">Principio</th><th>Aplicación en el proyecto</th></tr>
+  <tr><td><b>S</b> — Responsabilidad única</td><td>Cada clase hace una sola cosa: los repositorios persisten, los servicios hablan con el hardware, los casos de uso aplican reglas de negocio y las pantallas muestran datos. Por ejemplo, <code>ResolverUbicacion</code> solo decide en qué lugar está el usuario.</td></tr>
+  <tr><td><b>O</b> — Abierto/Cerrado</td><td>Se puede reemplazar SQLite por otra persistencia (por ejemplo, Hive o un backend) creando otra implementación de <code>UbicacionRepository</code>, sin modificar el dominio ni la UI.</td></tr>
+  <tr><td><b>L</b> — Sustitución de Liskov</td><td>Cualquier implementación de <code>LocationService</code> (la real con GPS o una falsa en las pruebas) funciona igual en <code>NuevaEntradaScreen</code>.</td></tr>
+  <tr><td><b>I</b> — Segregación de interfaces</td><td>Hay una interfaz pequeña por gadget (<code>LocationService</code>, <code>MediaService</code>, <code>SpeechService</code>, <code>MapLauncher</code>) en lugar de una interfaz "Dispositivo" gigante.</td></tr>
+  <tr><td><b>D</b> — Inversión de dependencias</td><td>El dominio y la UI dependen de abstracciones. Solo <code>AppContainer</code> conoce las clases concretas, y las pantallas reciben sus dependencias por constructor.</td></tr>
+</table>
+
+<h3>Decisiones técnicas relevantes</h3>
+<ul>
+  <li><b>SQLite en lugar de SharedPreferences:</b> los datos son relacionales (ubicación → entradas → fotos) y se necesitan consultas, llaves foráneas y transacciones. SharedPreferences solo es adecuado para pares clave-valor sencillos.</li>
+  <li><b>flutter_map (OpenStreetMap) en lugar de Google Maps SDK:</b> no requiere API key ni facturación; el botón a Google Maps cubre la navegación.</li>
+  <li><b>Radio de 75 m para identificar el lugar:</b> compensa la imprecisión del GPS en interiores sin confundir domicilios vecinos. La distancia se calcula con la fórmula de Haversine (<code>core/utils/geo_utils.dart</code>).</li>
+  <li><b>Rutas de imagen en lugar de BLOB:</b> mantienen la base de datos ligera y rápida.</li>
+  <li><b>Privacidad:</b> sin backend ni cuentas; la información del cliente nunca sale del dispositivo a menos que el técnico lo decida.</li>
+</ul>
+
+<!-- ============ 6. PRUEBAS Y TRABAJO FUTURO ============ -->
+<h2>6. Pruebas y trabajo futuro</h2>
+<p>La capa de dominio tiene pruebas unitarias en <code>test/domain/</code> (20 pruebas, todas aprobadas) que usan implementaciones falsas de los repositorios y servicios, lo cual es posible gracias a la inversión de dependencias. El proyecto se documenta con Spec Kit (<code>specs/</code>), donde se registran historias de usuario, decisiones técnicas y tareas.</p>
+<p><b>Trabajo futuro:</b> vista del historial tipo chat, notas de voz adjuntas a las entradas y opción para cambiar una entrada de lugar.</p>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose',
+    themeVariables: { fontFamily: 'Segoe UI, Arial', fontSize: '13px' },
+    sequence: { useMaxWidth: true, mirrorActors: false }, flowchart: { useMaxWidth: true } });
+  mermaid.run({ querySelector: '.mermaid' }).then(() => { document.body.setAttribute('data-listo', '1'); });
+</script>
+</body>
+</html>
