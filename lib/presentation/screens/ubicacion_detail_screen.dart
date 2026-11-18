@@ -168,13 +168,15 @@ class _TarjetaEntrada extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (entrada.imagenPath != null)
+          if (entrada.fotos.length == 1)
             FotoLocal(
-              ruta: entrada.imagenPath,
+              ruta: entrada.fotos.first,
               alto: 180,
               ancho: double.infinity,
               borde: BorderRadius.zero,
-            ),
+            )
+          else if (entrada.fotos.length > 1)
+            _CarruselFotos(fotos: entrada.fotos),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -186,6 +188,56 @@ class _TarjetaEntrada extends StatelessWidget {
                   Text(entrada.texto, style: estilos.bodyMedium),
                 ],
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Fotos de una entrada que se deslizan de lado, con contador "2/5".
+class _CarruselFotos extends StatefulWidget {
+  final List<String> fotos;
+
+  const _CarruselFotos({required this.fotos});
+
+  @override
+  State<_CarruselFotos> createState() => _CarruselFotosState();
+}
+
+class _CarruselFotosState extends State<_CarruselFotos> {
+  int _actual = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 180,
+      child: Stack(
+        children: [
+          PageView.builder(
+            itemCount: widget.fotos.length,
+            onPageChanged: (i) => setState(() => _actual = i),
+            itemBuilder: (_, i) => FotoLocal(
+              ruta: widget.fotos[i],
+              alto: 180,
+              ancho: double.infinity,
+              borde: BorderRadius.zero,
+            ),
+          ),
+          Positioned(
+            right: 8,
+            bottom: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${_actual + 1}/${widget.fotos.length}',
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
             ),
           ),
         ],

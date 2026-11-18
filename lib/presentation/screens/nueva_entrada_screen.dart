@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/utils/formato.dart';
+import '../../domain/entities/entrada.dart';
 import '../../domain/entities/ubicacion.dart';
 import '../../domain/services/device_services.dart';
 import '../../domain/usecases/guardar_entrada.dart';
@@ -41,11 +42,17 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
   Coordenadas? _coordenadas;
   Ubicacion? _ubicacionDetectada;
   String? _errorUbicacion;
-  String? _imagenPath;
+  final List<String> _fotos = [];
 
   bool _buscandoUbicacion = true;
   bool _escuchando = false;
   bool _guardando = false;
+
+  /// Si la entrada se guardó, sus fotos ya son de la base; si no, al salir
+  /// se borran para no dejar archivos huérfanos.
+  bool _guardada = false;
+
+  int get _espacioFotos => Entrada.maxFotos - _fotos.length;
 
   /// Texto que había antes de empezar a dictar; el dictado se agrega al final.
   String _textoAntesDeDictar = '';
@@ -61,6 +68,11 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
   @override
   void dispose() {
     if (_escuchando) widget.speech.detener();
+    if (!_guardada) {
+      for (final ruta in _fotos) {
+        widget.media.descartar(ruta);
+      }
+    }
     _textoCtrl.dispose();
     _nombreCtrl.dispose();
     super.dispose();
@@ -92,15 +104,33 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
   }
 
   // ---------- Cámara / galería ----------
-  Future<void> _elegirImagen({required bool camara}) async {
+  Future<void> _agregarFotos({required bool camara}) async {
+    if (_espacioFotos <= 0) {
+      mostrarError(context, 'Máximo ${Entrada.maxFotos} fotos por entrada.');
+      return;
+    }
     try {
-      final ruta = camara
-          ? await widget.media.tomarFoto()
-          : await widget.media.elegirDeGaleria();
-      if (ruta != null && mounted) setState(() => _imagenPath = ruta);
+      final nuevas = camara
+          ? [await widget.media.tomarFoto()].whereType<String>().toList()
+          : await widget.media.elegirDeGaleria(limite: _espacioFotos);
+      if (nuevas.isEmpty) return;
+      if (!mounted) {
+        // La pantalla se cerró mientras se elegían: no se van a guardar.
+        for (final r in nuevas) {
+          widget.media.descartar(r);
+        }
+        return;
+      }
+      setState(() => _fotos.addAll(nuevas));
     } catch (e) {
       if (mounted) mostrarError(context, e);
     }
+  }
+
+  void _quitarFoto(int i) {
+    final ruta = _fotos[i];
+    setState(() => _fotos.removeAt(i));
+    widget.media.descartar(ruta);
   }
 
   // ---------- Micrófono ----------
@@ -113,13 +143,24 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
     try {
       _textoAntesDeDictar = _textoCtrl.text;
       setState(() => _escuchando = true);
-      await widget.speech.escuchar((texto, esFinal) {
-        if (!mounted) return;
-        _textoCtrl.text = '$_textoAntesDeDictar $texto'.trim();
-        _textoCtrl.selection =
-            TextSelection.collapsed(offset: _textoCtrl.text.length);
-        if (esFinal) setState(() => _escuchando = false);
-      });
+      await widget.speech.escuchar(
+        (texto, esFinal) {
+          if (!mounted) return;
+          _textoCtrl.text = '$_textoAntesDeDictar $texto'.trim();
+          _textoCtrl.selection =
+              TextSelection.collapsed(offset: _textoCtrl.text.length);
+          if (esFinal) setState(() => _escuchando = false);
+        },
+        // El reconocedor puede parar solo (silencio o tiempo máximo).
+        onTerminado: () {
+          if (mounted && _escuchando) setState(() => _escuchando = false);
+        },
+        onError: (e) {
+          if (!mounted) return;
+          setState(() => _escuchando = false);
+          mostrarError(context, e);
+        },
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _escuchando = false);
@@ -140,10 +181,11 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
       await widget.guardarEntrada(
         coordenadas: c,
         texto: _textoCtrl.text,
-        imagenPath: _imagenPath,
+        fotos: List.of(_fotos),
         ubicacion: _destino,
         nombreNuevaUbicacion: _nombreCtrl.text,
       );
+      _guardada = true;
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) mostrarError(context, e);
@@ -161,13 +203,17 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
         children: [
           _tarjetaUbicacion(),
           const SizedBox(height: 16),
-          FotoLocal(ruta: _imagenPath, alto: 200, ancho: double.infinity),
+          _fotos.isEmpty
+              ? const FotoLocal(ruta: null, alto: 200, ancho: double.infinity)
+              : _tiraDeFotos(),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _elegirImagen(camara: true),
+                  onPressed: _espacioFotos > 0
+                      ? () => _agregarFotos(camara: true)
+                      : null,
                   icon: const Icon(Icons.photo_camera),
                   label: const Text('Cámara'),
                 ),
@@ -175,13 +221,23 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _elegirImagen(camara: false),
+                  onPressed: _espacioFotos > 0
+                      ? () => _agregarFotos(camara: false)
+                      : null,
                   icon: const Icon(Icons.photo_library),
                   label: const Text('Galería'),
                 ),
               ),
             ],
           ),
+          if (_fotos.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                '${_fotos.length} de ${Entrada.maxFotos} fotos',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
           const SizedBox(height: 16),
           TextField(
             controller: _textoCtrl,
@@ -215,6 +271,39 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
             label: const Text('Guardar'),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Miniaturas de las fotos elegidas, cada una con botón para quitarla.
+  Widget _tiraDeFotos() {
+    return SizedBox(
+      height: 120,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _fotos.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) => Stack(
+          children: [
+            FotoLocal(ruta: _fotos[i], alto: 120, ancho: 120),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Material(
+                color: Colors.black54,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () => _quitarFoto(i),
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.close, size: 18, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
