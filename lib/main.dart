@@ -5,8 +5,11 @@ import 'app/routes.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  final router = AppRouter(AppContainer.produccion());
-  runApp(BitacoraApp(router: router));
+  final container = AppContainer.produccion();
+  // Archivos de envíos anteriores; sin esperar, para no frenar el arranque
+  // (D-022).
+  container.compartir.limpiarTemporales();
+  runApp(BitacoraApp(router: AppRouter(container)));
 }
 
 class BitacoraApp extends StatelessWidget {

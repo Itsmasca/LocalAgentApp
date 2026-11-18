@@ -10,12 +10,17 @@ class FotoLocal extends StatelessWidget {
   final double? alto;
   final BorderRadius borde;
 
+  /// Ancho en píxeles al que se decodifica la imagen. En miniaturas evita
+  /// cargar la foto a resolución completa en memoria (spec 004, Riesgos).
+  final int? cacheWidth;
+
   const FotoLocal({
     super.key,
     required this.ruta,
     this.ancho,
     this.alto,
     this.borde = const BorderRadius.all(Radius.circular(12)),
+    this.cacheWidth,
   });
 
   @override
@@ -36,6 +41,7 @@ class FotoLocal extends StatelessWidget {
               width: ancho,
               height: alto,
               fit: BoxFit.cover,
+              cacheWidth: cacheWidth,
               errorBuilder: (_, __, ___) => placeholder,
             ),
     );

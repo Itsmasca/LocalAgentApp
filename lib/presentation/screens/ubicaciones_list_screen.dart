@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/routes.dart';
 import '../../core/utils/formato.dart';
+import '../../domain/entities/entrada.dart';
 import '../../domain/entities/ubicacion.dart';
 import '../../domain/repositories/ubicacion_repository.dart';
 import '../widgets/app_drawer.dart';
@@ -28,11 +29,30 @@ class _UbicacionesListScreenState extends State<UbicacionesListScreen> {
   }
 
   void _recargar() =>
-      setState(() => _futuro = widget.ubicaciones.obtenerTodas());
+      setState(() {
+        // El cuerpo en bloque es necesario: una flecha devolvería el Future
+        // y setState lo rechaza (la lista no se refrescaba al guardar).
+        _futuro = widget.ubicaciones.obtenerTodas();
+      });
 
+  /// Tras guardar, abre la conversación del lugar de la entrada (spec 004,
+  /// US3-6). `_abrirDetalle` recarga la lista al volver.
   Future<void> _nuevaEntrada() async {
-    final guardo = await Navigator.pushNamed(context, AppRoutes.nuevaEntrada);
-    if (guardo == true) _recargar();
+    final guardada =
+        await Navigator.pushNamed<Object?>(context, AppRoutes.nuevaEntrada);
+    if (guardada is! Entrada || !mounted) return;
+    try {
+      final u = await widget.ubicaciones.obtenerPorId(guardada.ubicacionId);
+      if (!mounted) return;
+      if (u == null) {
+        _recargar();
+        return;
+      }
+      await _abrirDetalle(u);
+    } catch (e) {
+      if (mounted) mostrarError(context, e);
+      _recargar();
+    }
   }
 
   Future<void> _abrirDetalle(Ubicacion u) async {

@@ -263,7 +263,7 @@ List<pw.Widget> _encabezado(_DatosReporte d) {
             pw.SizedBox(
               width: 80,
               child: pw.Text(etiqueta,
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             ),
             pw.Expanded(child: valor),
           ],
@@ -276,7 +276,7 @@ List<pw.Widget> _encabezado(_DatosReporte d) {
       children: [
         pw.Expanded(
           child: pw.Text('REPORTE DE EVIDENCIA DE CAMPO',
-              style: pw.TextStyle(
+              style: const pw.TextStyle(
                   fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
                   color: _acento)),
@@ -285,7 +285,7 @@ List<pw.Widget> _encabezado(_DatosReporte d) {
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             pw.Text('Folio: ${d.folio}',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             pw.Text('Generado: ${d.generado}',
                 style: const pw.TextStyle(fontSize: 9, color: _gris)),
           ],
@@ -323,7 +323,7 @@ List<pw.Widget> _entrada(_EntradaReporte e, int numero, int total) {
       padding: const pw.EdgeInsets.symmetric(vertical: 4, horizontal: 6),
       color: const PdfColor.fromInt(0xFFE0F2F1),
       child: pw.Text('Entrada $numero de $total — ${e.fecha}',
-          style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
     ),
   ];
 

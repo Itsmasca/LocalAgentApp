@@ -18,13 +18,13 @@ Future<FormatoCompartir?> mostrarHojaFormatoCompartir(BuildContext context) {
             child: Text('Compartir evidencia',
                 style: Theme.of(context).textTheme.titleMedium),
           ),
-          _Opcion(
+          const _Opcion(
             icono: Icons.picture_as_pdf_outlined,
             titulo: 'Reporte formal',
             detalle: 'PDF con folio, ideal para clientes',
             formato: FormatoCompartir.reporteFormal,
           ),
-          _Opcion(
+          const _Opcion(
             icono: Icons.chat_outlined,
             titulo: 'Mensaje',
             detalle: 'Texto y fotos para WhatsApp o correo',

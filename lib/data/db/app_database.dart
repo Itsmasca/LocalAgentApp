@@ -10,14 +10,17 @@ import 'package:sqflite/sqflite.dart';
 ///   ya no se lee ni se escribe.
 /// - 3: tabla `ajustes` (clave-valor) para el responsable, la preferencia
 ///   de coordenadas y el folio de los reportes (spec 003, D-019).
+/// - 4: tabla `observaciones`, notas breves ligadas a una entrada
+///   (spec 004, D-024).
 class AppDatabase {
   static const _nombreArchivo = 'bitacora_campo.db';
-  static const _version = 3;
+  static const _version = 4;
 
   static const tablaUbicaciones = 'ubicaciones';
   static const tablaEntradas = 'entradas';
   static const tablaFotos = 'fotos';
   static const tablaAjustes = 'ajustes';
+  static const tablaObservaciones = 'observaciones';
 
   Database? _db;
 
@@ -62,6 +65,7 @@ class AppDatabase {
         'CREATE INDEX idx_entradas_ubicacion ON $tablaEntradas(ubicacion_id)');
     await _crearTablaFotos(db);
     await _crearTablaAjustes(db);
+    await _crearTablaObservaciones(db);
   }
 
   Future<void> _migrar(Database db, int deVersion, int aVersion) async {
@@ -77,6 +81,24 @@ class AppDatabase {
     if (deVersion < 3) {
       await _crearTablaAjustes(db);
     }
+    if (deVersion < 4) {
+      // Las entradas existentes simplemente no tienen observaciones.
+      await _crearTablaObservaciones(db);
+    }
+  }
+
+  Future<void> _crearTablaObservaciones(DatabaseExecutor db) async {
+    await db.execute('''
+      CREATE TABLE $tablaObservaciones (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        entrada_id  INTEGER NOT NULL
+                    REFERENCES $tablaEntradas(id) ON DELETE CASCADE,
+        texto       TEXT    NOT NULL,
+        creada_en   TEXT    NOT NULL
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_observaciones_entrada '
+        'ON $tablaObservaciones(entrada_id, creada_en)');
   }
 
   Future<void> _crearTablaAjustes(DatabaseExecutor db) async {

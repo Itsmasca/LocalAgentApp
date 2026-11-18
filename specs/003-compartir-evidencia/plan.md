@@ -126,6 +126,7 @@ reemplaza por estas pruebas.
 | WhatsApp a veces ignora el texto cuando hay varias fotos | El texto también va como "asunto"; aceptado y anotado en el quickstart (escenario 6) |
 | Reporte grande tarda más de 10 s en gama baja | Progreso visible; compresión nativa; si SC-002 falla en el teléfono físico, bajar a 1024 px |
 | La migración v3 choca con la de notas de voz de la 002 | D-019: la 002 tomará la siguiente versión libre; actualizar su spec (FR-006 dice "versión 2") |
+| La spec 004 agrega observaciones (esquema v4); el reporte y el mensaje aún no las incluyen | Seguimiento: `PrepararEvidencia` debe usar `EntradaRepository.obtenerVisitas` e incluirlas bajo su entrada |
 
 ## Complexity Tracking
 

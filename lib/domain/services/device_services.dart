@@ -1,5 +1,6 @@
 /// Interfaces de los gadgets del dispositivo. Cada una tiene una sola
 /// responsabilidad (ISP) y la UI depende de ellas, no de los plugins.
+library;
 
 class Coordenadas {
   final double latitud;

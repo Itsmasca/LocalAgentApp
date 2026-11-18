@@ -1,4 +1,7 @@
 import 'package:bitacora_campo/domain/entities/entrada.dart';
+import 'package:bitacora_campo/domain/entities/observacion.dart';
+import 'package:bitacora_campo/domain/entities/visita.dart';
+import 'package:bitacora_campo/domain/repositories/observacion_repository.dart';
 import 'package:bitacora_campo/domain/entities/paquete_evidencia.dart';
 import 'package:bitacora_campo/domain/entities/reporte_generado.dart';
 import 'package:bitacora_campo/domain/entities/responsable.dart';
@@ -34,7 +37,12 @@ Entrada entrada(int id, DateTime creadaEn,
 
 class FakeEntradaRepository implements EntradaRepository {
   final List<Entrada> entradas;
-  FakeEntradaRepository(this.entradas);
+  final List<Observacion> observaciones;
+  FakeEntradaRepository(this.entradas, {this.observaciones = const []});
+
+  List<Entrada> _delLugar(int ubicacionId) =>
+      entradas.where((e) => e.ubicacionId == ubicacionId).toList()
+        ..sort((a, b) => a.creadaEn.compareTo(b.creadaEn));
 
   @override
   Future<List<Entrada>> obtenerPorUbicacion(int ubicacionId) async =>
@@ -42,6 +50,37 @@ class FakeEntradaRepository implements EntradaRepository {
 
   @override
   Future<Entrada> crear(Entrada entrada) async => entrada;
+
+  @override
+  Future<List<Visita>> obtenerVisitas(int ubicacionId) async => [
+        for (final e in _delLugar(ubicacionId))
+          Visita(
+            entrada: e,
+            observaciones:
+                observaciones.where((o) => o.entradaId == e.id).toList(),
+          ),
+      ];
+
+  @override
+  Future<Entrada?> obtenerMasReciente(int ubicacionId) async {
+    final lista = _delLugar(ubicacionId);
+    return lista.isEmpty ? null : lista.last;
+  }
+}
+
+class FakeObservacionRepository implements ObservacionRepository {
+  final List<Observacion> guardadas = [];
+  final List<int> eliminadas = [];
+
+  @override
+  Future<Observacion> crear(Observacion observacion) async {
+    final o = observacion.copyWith(id: guardadas.length + 1);
+    guardadas.add(o);
+    return o;
+  }
+
+  @override
+  Future<void> eliminar(int id) async => eliminadas.add(id);
 }
 
 class FakeAjustesRepository implements AjustesRepository {

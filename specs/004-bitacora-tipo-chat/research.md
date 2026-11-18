@@ -11,7 +11,7 @@ Ningún paquete nuevo: todo se resuelve con Flutter y los paquetes ya aprobados.
 
 ## D-025 · Versión de esquema: la siguiente libre, con migraciones acumulativas
 
-- **Decisión**: `observaciones` entra en la **siguiente versión libre** del esquema. Hoy la base está en v2 y la spec 003 tiene reservada la v3 (tabla `ajustes`, D-019) pero no está implementada. La primera que se implemente toma v3 y la otra v4. Cada paso de `_migrar` va protegido con `if (deVersion < N)` y `onCreate` crea el esquema completo de la última versión.
+- **Decisión**: `observaciones` entra en la **siguiente versión libre** del esquema. (Actualización: la 003 ya se implementó con v3, así que `observaciones` es la **v4**.) Hoy la base está en v2 y la spec 003 tiene reservada la v3 (tabla `ajustes`, D-019) pero no está implementada. La primera que se implemente toma v3 y la otra v4. Cada paso de `_migrar` va protegido con `if (deVersion < N)` y `onCreate` crea el esquema completo de la última versión.
 - **Justificación**: Evita que dos specs escriban la misma versión. Las migraciones acumulativas funcionan desde cualquier versión anterior.
 - **Alternativas**: Fijar ya v4 y dejar un hueco si la 003 se retrasa. Se descarta porque sqflite no admite saltos sin un paso intermedio y el hueco confunde.
 

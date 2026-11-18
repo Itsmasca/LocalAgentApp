@@ -20,7 +20,7 @@ datos que salgan del teléfono. Decisiones D-024 a D-032 en [research.md](./rese
 
 **Primary Dependencies**: Solo los existentes (`sqflite`, `path`, `speech_to_text`, `flutter_map`, `latlong2`, `url_launcher`). Nada nuevo (D-028: visor con `InteractiveViewer`)
 
-**Storage**: SQLite existente. Tabla nueva `observaciones` en la siguiente versión libre del esquema (v3 si la 003 aún no se implementa; si no, v4) con migración acumulativa (D-025)
+**Storage**: SQLite existente. Tabla nueva `observaciones` en el esquema **v4** (la v3 es `ajustes` de la 003) con migración acumulativa (D-025)
 
 **Testing**: `flutter_test`: caso de uso `AgregarObservacion` con repositorios falsos y función pura `armarElementosConversacion`. La interfaz se valida con el [quickstart](./quickstart.md)
 

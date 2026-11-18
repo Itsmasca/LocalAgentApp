@@ -6,6 +6,7 @@ import '../../domain/entities/ubicacion.dart';
 import '../../domain/services/device_services.dart';
 import '../../domain/usecases/guardar_entrada.dart';
 import '../../domain/usecases/resolver_ubicacion.dart';
+import '../widgets/boton_dictado.dart';
 import '../widgets/estado_vista.dart';
 import '../widgets/foto_local.dart';
 
@@ -13,6 +14,7 @@ import '../widgets/foto_local.dart';
 ///
 /// Si [ubicacionFija] viene de la pantalla de detalle, la entrada se
 /// agrega a ese lugar. Si no, se aplica la regla de [ResolverUbicacion].
+/// Al guardar regresa la [Entrada] creada; al cancelar, `null`.
 class NuevaEntradaScreen extends StatefulWidget {
   final Ubicacion? ubicacionFija;
   final LocationService location;
@@ -38,6 +40,7 @@ class NuevaEntradaScreen extends StatefulWidget {
 class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
   final _textoCtrl = TextEditingController();
   final _nombreCtrl = TextEditingController();
+  final _dictado = GlobalKey<BotonDictadoState>();
 
   Coordenadas? _coordenadas;
   Ubicacion? _ubicacionDetectada;
@@ -54,9 +57,6 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
 
   int get _espacioFotos => Entrada.maxFotos - _fotos.length;
 
-  /// Texto que había antes de empezar a dictar; el dictado se agrega al final.
-  String _textoAntesDeDictar = '';
-
   Ubicacion? get _destino => widget.ubicacionFija ?? _ubicacionDetectada;
 
   @override
@@ -67,7 +67,7 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
 
   @override
   void dispose() {
-    if (_escuchando) widget.speech.detener();
+    // BotonDictado detiene el micrófono en su propio dispose.
     if (!_guardada) {
       for (final ruta in _fotos) {
         widget.media.descartar(ruta);
@@ -133,41 +133,6 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
     widget.media.descartar(ruta);
   }
 
-  // ---------- Micrófono ----------
-  Future<void> _alternarDictado() async {
-    if (_escuchando) {
-      await widget.speech.detener();
-      setState(() => _escuchando = false);
-      return;
-    }
-    try {
-      _textoAntesDeDictar = _textoCtrl.text;
-      setState(() => _escuchando = true);
-      await widget.speech.escuchar(
-        (texto, esFinal) {
-          if (!mounted) return;
-          _textoCtrl.text = '$_textoAntesDeDictar $texto'.trim();
-          _textoCtrl.selection =
-              TextSelection.collapsed(offset: _textoCtrl.text.length);
-          if (esFinal) setState(() => _escuchando = false);
-        },
-        // El reconocedor puede parar solo (silencio o tiempo máximo).
-        onTerminado: () {
-          if (mounted && _escuchando) setState(() => _escuchando = false);
-        },
-        onError: (e) {
-          if (!mounted) return;
-          setState(() => _escuchando = false);
-          mostrarError(context, e);
-        },
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _escuchando = false);
-      mostrarError(context, e);
-    }
-  }
-
   // ---------- Guardar ----------
   Future<void> _guardar() async {
     final c = _coordenadas;
@@ -177,8 +142,8 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
     }
     setState(() => _guardando = true);
     try {
-      if (_escuchando) await widget.speech.detener();
-      await widget.guardarEntrada(
+      await _dictado.currentState?.detener();
+      final guardada = await widget.guardarEntrada(
         coordenadas: c,
         texto: _textoCtrl.text,
         fotos: List.of(_fotos),
@@ -186,7 +151,7 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
         nombreNuevaUbicacion: _nombreCtrl.text,
       );
       _guardada = true;
-      if (mounted) Navigator.pop(context, true);
+      if (mounted) Navigator.pop<Entrada>(context, guardada);
     } catch (e) {
       if (mounted) mostrarError(context, e);
     } finally {
@@ -246,11 +211,11 @@ class _NuevaEntradaScreenState extends State<NuevaEntradaScreen> {
             decoration: InputDecoration(
               labelText: '¿Qué hiciste o qué quedó pendiente?',
               border: const OutlineInputBorder(),
-              suffixIcon: IconButton(
-                tooltip: _escuchando ? 'Detener dictado' : 'Dictar',
-                icon: Icon(_escuchando ? Icons.stop_circle : Icons.mic,
-                    color: _escuchando ? Colors.red : null),
-                onPressed: _alternarDictado,
+              suffixIcon: BotonDictado(
+                key: _dictado,
+                speech: widget.speech,
+                controlador: _textoCtrl,
+                onEscuchandoCambio: (v) => setState(() => _escuchando = v),
               ),
             ),
           ),

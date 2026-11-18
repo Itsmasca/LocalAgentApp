@@ -15,13 +15,25 @@ class SqliteUbicacionRepository implements UbicacionRepository {
   Future<List<Ubicacion>> obtenerTodas() async {
     try {
       final db = await _appDb.database;
-      // Las ubicaciones con actividad más reciente aparecen primero.
+      // Las ubicaciones con actividad más reciente aparecen primero. La
+      // actividad incluye entradas y observaciones (spec 004, FR-014). Se usan
+      // subconsultas para no multiplicar filas con JOIN; el MAX escalar de
+      // SQLite devuelve NULL si algún argumento lo es, por eso cada uno lleva
+      // COALESCE con la fecha de creación del lugar.
       final filas = await db.rawQuery('''
-        SELECT u.*, MAX(e.creada_en) AS ultima
+        SELECT u.*,
+          MAX(
+            u.creada_en,
+            COALESCE((SELECT MAX(e.creada_en)
+                      FROM ${AppDatabase.tablaEntradas} e
+                      WHERE e.ubicacion_id = u.id), u.creada_en),
+            COALESCE((SELECT MAX(o.creada_en)
+                      FROM ${AppDatabase.tablaObservaciones} o
+                      JOIN ${AppDatabase.tablaEntradas} e ON e.id = o.entrada_id
+                      WHERE e.ubicacion_id = u.id), u.creada_en)
+          ) AS actividad
         FROM ${AppDatabase.tablaUbicaciones} u
-        LEFT JOIN ${AppDatabase.tablaEntradas} e ON e.ubicacion_id = u.id
-        GROUP BY u.id
-        ORDER BY COALESCE(ultima, u.creada_en) DESC
+        ORDER BY actividad DESC
       ''');
       return filas.map(UbicacionModel.fromMap).toList();
     } catch (e) {

@@ -35,7 +35,11 @@ class VistaVacia extends StatelessWidget {
   final IconData icono;
   final String mensaje;
 
-  const VistaVacia({super.key, required this.icono, required this.mensaje});
+  /// Botón opcional debajo del mensaje (p. ej. "Registrar primera visita").
+  final Widget? accion;
+
+  const VistaVacia(
+      {super.key, required this.icono, required this.mensaje, this.accion});
 
   @override
   Widget build(BuildContext context) => Center(
@@ -47,6 +51,10 @@ class VistaVacia extends StatelessWidget {
               Icon(icono, size: 56),
               const SizedBox(height: 12),
               Text(mensaje, textAlign: TextAlign.center),
+              if (accion != null) ...[
+                const SizedBox(height: 16),
+                accion!,
+              ],
             ],
           ),
         ),
